@@ -84,15 +84,24 @@ class Git < Formula
 
     bin.install Dir["contrib/remote-helpers/git-remote-{hg,bzr}"]
 
-    # Install the OS X keychain credential helper
-    cd 'contrib/credential/osxkeychain' do
-      system "make", "CC=#{ENV.cc}",
-                     "CFLAGS=#{ENV.cflags}",
-                     "LDFLAGS=#{ENV.ldflags}"
-      bin.install 'git-credential-osxkeychain'
-      system "make", "clean"
+    if (/darwin/ =~ RUBY_PLATFORM) != nil
+      # Install the OS X keychain credential helper
+      cd 'contrib/credential/osxkeychain' do
+        system "make", "CC=#{ENV.cc}",
+                       "CFLAGS=#{ENV.cflags}",
+                       "LDFLAGS=#{ENV.ldflags}"
+        bin.install 'git-credential-osxkeychain'
+        system "make", "clean"
+      end
+    else
+      ENV['PKG_CONFIG_PATH'] = '/usr/lib/x86_64-linux-gnu/pkgconfig'+':/usr/local/lib/x86_64-linux-gnu/pkgconfig:/usr/local/lib/pkgconfig:/usr/local/share/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig' #the first string was the only part I needed. Your millage may vary on other linux installs
+      cd 'contrib/credential/gnome-keyring' do
+        makeoutput = %x(make)
+        bin.install 'git-credential-gnome-keyring'
+        system "make", "clean"
+      end
     end
-
+    
     # Install git-subtree
     cd 'contrib/subtree' do
       system "make", "CC=#{ENV.cc}",
