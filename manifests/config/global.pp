@@ -15,16 +15,17 @@
 define git::config::global($value) {
   $split_key = split($name, '\.')
   $path = "/Users/${::boxen_user}/.gitconfig"
-  
-  $require = $osfamily ? {
+
+  $os_require = $osfamily ? {
     'Darwin' => [],
     default  => [ File["/Users/${::boxen_user}"] ],
   }
-  
+  $extra_require = concat($os_require,any2array($require))
+
   ini_setting { "set ${name} to ${value} in ${path}":
     ensure  => present,
     path    => $path,
-    require => $require,
+    require => $extra_require,
     section => $split_key[0],
     setting => $split_key[1],
     value   => $value,
